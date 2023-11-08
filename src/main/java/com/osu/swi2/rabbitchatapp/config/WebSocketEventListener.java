@@ -22,7 +22,7 @@ public class WebSocketEventListener implements ApplicationListener<SessionConnec
     private SimpMessageSendingOperations messagingTemplate;
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectedEvent event) {
-        System.out.println("Received a new web socket connection");
+        logger.info("Received new websocket connection: " + event.getMessage());
     }
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
@@ -39,6 +39,6 @@ public class WebSocketEventListener implements ApplicationListener<SessionConnec
     @Override
     public void onApplicationEvent(SessionConnectEvent event) {
         StompHeaderAccessor sha = StompHeaderAccessor.wrap(event.getMessage());
-        logger.debug("Connect event [sessionId: " + sha.getSessionId() + "]");
+        logger.info("Connect event [sessionId: " + sha.getSessionId() + "]");
     }
 }
