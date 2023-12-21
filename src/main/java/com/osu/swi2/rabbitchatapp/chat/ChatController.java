@@ -1,13 +1,13 @@
 package com.osu.swi2.rabbitchatapp.chat;
 
+import com.osu.swi2.rabbitchatapp.user.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
@@ -15,21 +15,33 @@ import org.springframework.web.bind.annotation.*;
 @AllArgsConstructor
 public class ChatController {
 
-    SimpMessagingTemplate template;
     private final ChatService chatService;
+    private final UserService userService;
 
     @PostMapping("/send")
-    public ResponseEntity<Void> sendMessage(@RequestBody ChatMessage message) {
-        chatService.sendMessage(message);
-        //template.convertAndSend("/topic/message", message);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<Void> sendMessage(HttpServletRequest request,
+            @RequestBody ChatMessage message) {
+        var user = userService.getUserFromRequest(request);
+        chatService.sendMessage(user, message);
+        return ResponseEntity.ok().build();
     }
-    @MessageMapping("/sendMessage")
-    public void receiveMessage(@Payload ChatMessage message) {
-        chatService.sendMessage(message);
+
+    @PostMapping("/create")
+    public ResponseEntity<ChatRoom> createChat(HttpServletRequest request,
+                                            @RequestParam String chatName) {
+        var user = userService.getUserFromRequest(request);
+        var chatRoom = chatService.createChat(user, chatName);
+        return new ResponseEntity<>(chatRoom, HttpStatus.CREATED);
     }
-    @SendTo("/topic/message")
-    public ChatMessage broadcastMessage(@Payload ChatMessage message) {
-        return message;
+
+    @GetMapping("/queues")
+    public ResponseEntity<List<String>> getQueues(HttpServletRequest request) {
+        var user = userService.getUserFromRequest(request);
+        return ResponseEntity.ok(chatService.getAllUserQueues(user));
+    }
+    @GetMapping("/exchanges")
+    public ResponseEntity<List<ChatDTO>> getExchanges(HttpServletRequest request) {
+        var user = userService.getUserFromRequest(request);
+        return ResponseEntity.ok(chatService.getAllUserChatRooms(user));
     }
 }

@@ -1,48 +1,47 @@
 package com.osu.swi2.rabbitchatapp.config;
 
-import com.osu.swi2.rabbitchatapp.chat.ChatConsumer;
 import com.osu.swi2.rabbitchatapp.chat.ChatReceiver;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.UUID;
 
 @Configuration
 public class RabbitMQConfig {
 
-    @Value("${rabbitmq.queue}")
-    String queueName;
-
-    @Value("${rabbitmq.exchange}")
-    private String exchangeName;
-
-    @Value("${rabbitmq.routing.key}")
-    private String routingKey;
-
     @Bean
     Queue queue() {
-        return new Queue(queueName, false);
+        return new Queue(UUID.randomUUID().toString(), false, false, true);
     }
     @Bean
-    DirectExchange exchange() {
-        return new DirectExchange(exchangeName);
+    FanoutExchange exchange() {
+        return new FanoutExchange(UUID.randomUUID().toString(), false, true);
     }
     @Bean
-    Binding binding(Queue queue, DirectExchange exchange) {
-        return BindingBuilder.bind(queue).to(exchange).with(routingKey);
+    Binding binding(Queue queue, FanoutExchange exchange) {
+        return BindingBuilder.bind(queue).to(exchange);
     }
+
+    @Bean
+    public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
+        return new RabbitAdmin(connectionFactory);
+    }
+
     @Bean
     SimpleMessageListenerContainer container(ConnectionFactory connectionFactory,
-                                             ChatConsumer listenerAdapter) {
+                                             ChatReceiver listenerAdapter,
+                                             Queue queue) {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
-        container.setQueueNames(queueName);
-        container.setMessageListener(listenerAdapter);
+        container.setQueueNames(queue.getName());
+        container.setMessageListener(listenerAdapter(listenerAdapter));
         return container;
     }
 
@@ -54,11 +53,6 @@ public class RabbitMQConfig {
     @Bean
     public MessageConverter jsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
-    }/*
-    @Bean
-    public AmqpTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
-        final RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-        rabbitTemplate.setMessageConverter(jsonMessageConverter());
-        return rabbitTemplate;
-    }*/
+    }
+
 }

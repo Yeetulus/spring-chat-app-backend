@@ -1,5 +1,6 @@
 package com.osu.swi2.rabbitchatapp.config;
 
+import com.osu.swi2.rabbitchatapp.jwt.JwtHandshakeInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +17,7 @@ import org.springframework.security.messaging.access.intercept.AuthorizationChan
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -23,6 +25,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final ApplicationContext context;
+    private final JwtHandshakeInterceptor jwtHandshakeInterceptor;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
@@ -33,7 +36,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws-message")
-                .setAllowedOriginPatterns("*").withSockJS();
+                .setAllowedOriginPatterns("*")
+                //.addInterceptors(new HttpSessionHandshakeInterceptor(), jwtHandshakeInterceptor)
+                .withSockJS();
     }
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
@@ -41,13 +46,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         AuthorizationChannelInterceptor authz = new AuthorizationChannelInterceptor(myAuthorizationRules);
         AuthorizationEventPublisher publisher = new SpringAuthorizationEventPublisher(this.context);
         authz.setAuthorizationEventPublisher(publisher);
-        // TODO fix websocket security
+        // TODO websocket security
         //registration.interceptors(new SecurityContextChannelInterceptor(), authz,);
-        registration.interceptors(new ChannelInterceptor() {
-            @Override
-            public Message<?> preSend(Message<?> message, MessageChannel channel) {
-                return ChannelInterceptor.super.preSend(message, channel);
-            }
-        });
+
     }
 }

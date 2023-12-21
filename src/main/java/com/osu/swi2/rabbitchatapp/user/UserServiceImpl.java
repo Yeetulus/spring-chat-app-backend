@@ -8,13 +8,19 @@ import com.osu.swi2.rabbitchatapp.jwt.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,12 +31,22 @@ public class UserServiceImpl implements UserService{
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
+
     @Override
-    public User getByEmail(String email) {
-        return userRepository.findByEmail(email).orElseThrow();
+    public User getUserFromRequest(HttpServletRequest request) {
+        User user = (User)request.getAttribute("jwtUser");
+        if(user == null) throw new AuthorizationServiceException("Could not parse user from JWT token");
+        return user;
     }
 
     public AuthResponse registerUser(RegistrationRequest request){
+        Optional<User> existing = userRepository.findByEmail(request.getEmail());
+        if(existing.isPresent()){
+            // TODO CUSTOM EXCEPTION
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("User with email %s already exists", request.getEmail()));
+        }
+
         User newUser = User.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
@@ -60,6 +76,10 @@ public class UserServiceImpl implements UserService{
         var refreshToken = jwtService.generateRefreshToken(user);
         jwtService.revokeAllUserTokens(user);
         jwtService.saveUserToken(user, jwtToken);
+
+        LOGGER.info(String.format("Created access token: %s", jwtToken));
+        LOGGER.info(String.format("Created refresh token: %s", refreshToken));
+
         return AuthResponse.builder()
                 .accessToken(jwtToken)
                 .refreshToken(refreshToken)
@@ -93,5 +113,11 @@ public class UserServiceImpl implements UserService{
                 new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
             }
         }
+    }
+
+    @Override
+    public User getByEmail(String email) {
+        return userRepository.findByEmail(email).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, email));
     }
 }

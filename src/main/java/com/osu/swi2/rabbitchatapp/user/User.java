@@ -36,9 +36,6 @@ public class User implements UserDetails {
     @JsonIgnore
     private String password;
 
-    @ManyToMany(mappedBy = "users", fetch = FetchType.LAZY)
-    private Set<ChatRoom> chats;
-
     @Override
     @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -10,10 +10,11 @@ import java.io.IOException;
 
 public interface UserService {
 
-    User getByEmail(String email);
-
+    User getUserFromRequest(HttpServletRequest request);
     AuthResponse registerUser(RegistrationRequest request);
     AuthResponse authenticate(AuthRequest request);
     void refreshToken(HttpServletRequest request,
                       HttpServletResponse response) throws IOException;
+
+    User getByEmail(String email);
 }

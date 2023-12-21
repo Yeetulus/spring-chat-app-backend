@@ -1,14 +1,13 @@
 package com.osu.swi2.rabbitchatapp.chat;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.osu.swi2.rabbitchatapp.user.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Getter
@@ -16,6 +15,7 @@ import java.util.Set;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class ChatRoom {
 
     @Id
@@ -23,20 +23,15 @@ public class ChatRoom {
     private Long id;
 
     @NotBlank
-    private String queueName;
+    private String exchange;
     @NotBlank
     private String chatName;
 
     @ManyToOne
     @JoinColumn(name = "owner_id", nullable = false)
-    @JsonIgnore
     private User owner;
 
-    @ManyToMany
-    @JoinTable(
-            name = "chat_users",
-            joinColumns = @JoinColumn(name = "chat_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
-    private Set<User> users;
+    @OneToMany(cascade = CascadeType.REMOVE)
+    @JsonIgnoreProperties("queue")
+    private Set<UserQueue> userQueues = new HashSet<>();
 }
