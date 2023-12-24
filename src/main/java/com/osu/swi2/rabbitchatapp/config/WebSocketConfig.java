@@ -29,15 +29,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic");
-        config.setApplicationDestinationPrefixes("/app");
+        config.enableSimpleBroker("/chat");
+        config.setApplicationDestinationPrefixes("/app", "/chat");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws-message")
                 .setAllowedOriginPatterns("*")
-                //.addInterceptors(new HttpSessionHandshakeInterceptor(), jwtHandshakeInterceptor)
+                .addInterceptors(new HttpSessionHandshakeInterceptor(), jwtHandshakeInterceptor)
                 .withSockJS();
     }
     @Override

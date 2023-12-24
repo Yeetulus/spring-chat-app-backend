@@ -88,6 +88,7 @@
             <artifactId>spring-security-messaging</artifactId>
             <version>6.1.4</version>
         </dependency>
+
     </dependencies>
 
     <build>

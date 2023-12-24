@@ -14,4 +14,12 @@ public interface ChatService {
     void deleteChat(User requestingUser, Long chatId);
     ChatRoom addUserToChat(ChatRoom chat, User user);
     ChatRoom checkUserMessage(ChatMessage message, User user);
+
+
+    void addNewQueue(String queueName,String exchangeName,String routingKey);
+    void addQueueToListener(String listenerId,String queueName);
+    void removeQueueFromListener(String listenerId,String queueName);
+    Boolean checkQueueExistOnListener(String listenerId,String queueName);
+
+    void createConsumer(String queue);
 }

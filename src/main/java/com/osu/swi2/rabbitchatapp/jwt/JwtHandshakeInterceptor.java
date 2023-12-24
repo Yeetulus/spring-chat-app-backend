@@ -3,6 +3,8 @@ package com.osu.swi2.rabbitchatapp.jwt;
 import com.osu.swi2.rabbitchatapp.user.User;
 import com.osu.swi2.rabbitchatapp.user.UserService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.stereotype.Component;
@@ -18,19 +20,23 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 
     private final JwtService jwtService;
     private final UserService userService;
-    @Override
-    public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
 
-        List<String> headers = request.getHeaders().get("Authorization");
+    private static final Logger LOGGER = LoggerFactory.getLogger(JwtHandshakeInterceptor.class);
+    @Override
+    public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) {
+        return true;
+        /*List<String> headers = request.getHeaders().get("Authorization");
         if (headers != null && !headers.isEmpty()) {
             String jwtToken = headers.get(0).replace("Bearer ", "");
             String username = jwtService.extractUsername(jwtToken);
             User user = userService.getByEmail(username);
 
             attributes.put("user", user);
+            LOGGER.info(String.format("Parsed user from bearer token: %s", user.getEmail()));
             return true;
         }
-        return false;
+        LOGGER.warn("Could not parse user from token");
+        return false;*/
 
     }
 
