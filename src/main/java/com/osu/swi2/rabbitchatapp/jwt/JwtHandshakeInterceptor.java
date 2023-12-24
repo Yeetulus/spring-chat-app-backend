@@ -1,6 +1,5 @@
 package com.osu.swi2.rabbitchatapp.jwt;
 
-import com.osu.swi2.rabbitchatapp.user.User;
 import com.osu.swi2.rabbitchatapp.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -11,7 +10,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
-import java.util.List;
 import java.util.Map;
 
 @Component
