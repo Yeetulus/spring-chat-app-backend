@@ -1,5 +1,6 @@
 package com.osu.swi2.rabbitchatapp.chat;
 
+import com.osu.swi2.rabbitchatapp.user.User;
 import com.osu.swi2.rabbitchatapp.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
@@ -43,5 +44,11 @@ public class ChatController {
     public ResponseEntity<List<ChatDTO>> getExchanges(HttpServletRequest request) {
         var user = userService.getUserFromRequest(request);
         return ResponseEntity.ok(chatService.getAllUserChatRooms(user));
+    }
+
+    @PostMapping("/add")
+    public ResponseEntity<User> addUser(HttpServletRequest request, @RequestParam Long chatId, @RequestParam String email){
+        var user = userService.getUserFromRequest(request);
+        return ResponseEntity.ok(chatService.addNewUser(user, chatId, email));
     }
 }

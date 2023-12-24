@@ -13,13 +13,10 @@ public interface ChatService {
     ChatRoom createChat(User creator, String chatName);
     void deleteChat(User requestingUser, Long chatId);
     ChatRoom addUserToChat(ChatRoom chat, User user);
+    User addNewUser(User owner, Long chatId, String email);
     ChatRoom checkUserMessage(ChatMessage message, User user);
-
-
-    void addNewQueue(String queueName,String exchangeName,String routingKey);
-    void addQueueToListener(String listenerId,String queueName);
-    void removeQueueFromListener(String listenerId,String queueName);
-    Boolean checkQueueExistOnListener(String listenerId,String queueName);
-
+    void checkChatOwnership(User user, ChatRoom chat);
     void createConsumer(String queue);
+
+    ChatRoom getChat(Long chatId);
 }

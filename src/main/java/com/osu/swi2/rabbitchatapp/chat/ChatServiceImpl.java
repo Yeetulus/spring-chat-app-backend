@@ -2,6 +2,7 @@ package com.osu.swi2.rabbitchatapp.chat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.osu.swi2.rabbitchatapp.user.User;
+import com.osu.swi2.rabbitchatapp.user.UserService;
 import com.rabbitmq.client.Consumer;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -28,16 +29,17 @@ public class ChatServiceImpl implements ChatService{
     private final RabbitTemplate template;
     private final RabbitAdmin admin;
 
+    private final UserService userService;
     private final ChatRoomRepository chatRoomRepository;
     private final UserQueueRepository userQueueRepository;
 
-    private final RabbitListenerEndpointRegistry rabbitListenerEndpointRegistry;
     private final SimpMessagingTemplate simpTemplate;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ChatServiceImpl.class);
 
     @Override
     public void sendMessage(User user, ChatMessage message) {
+        message.setSenderId(user.getId());
         var chatRoom = checkUserMessage(message, user);
         LOGGER.info(String.format("User %s sends a message to chat with ID %s", user.getEmail(), message.getChatId()));
         template.convertAndSend(chatRoom.getExchange(), chatRoom.getExchange(), message);
@@ -80,6 +82,13 @@ public class ChatServiceImpl implements ChatService{
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not member of this chat");
 
         return chatRoom;
+    }
+
+    @Override
+    public void checkChatOwnership(User user, ChatRoom chat) {
+        if(!chat.getOwner().getId().equals(user.getId()))
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    String.format("User %s does not own chat with ID %s", user.getEmail(), chat.getId()));
     }
 
     @Override
@@ -137,64 +146,13 @@ public class ChatServiceImpl implements ChatService{
     }
 
     @Override
-    public void addNewQueue(String queueName, String exchangeName, String routingKey) {
-        Queue queue = QueueBuilder.durable().build();
-        Binding binding = new Binding(
-                queueName,
-                Binding.DestinationType.QUEUE,
-                exchangeName,
-                routingKey,
-                null
-        );
-        admin.declareQueue(queue);
-        admin.declareBinding(binding);
-        addQueueToListener(exchangeName,queueName);
-    }
+    public User addNewUser(User owner, Long chatId, String email) {
+        var chat = getChat(chatId);
+        checkChatOwnership(owner, chat);
 
-    @Override
-    public void addQueueToListener(String listenerId, String queueName) {
-        LOGGER.info(String.format("adding queue : %s to listener with id : %s", queueName, listenerId));
-        if (!checkQueueExistOnListener(listenerId,queueName)) {
-            getMessageListenerContainerById(listenerId).addQueueNames(queueName);
-            LOGGER.info("queue ");
-        } else {
-            LOGGER.info(String.format("given queue name : %s not exist on given listener id : %s", queueName, listenerId));
-        }
-    }
-
-    @Override
-    public void removeQueueFromListener(String listenerId, String queueName) {
-        LOGGER.info(String.format("removing queue : %s from listener : %s", queueName, listenerId));
-        if (checkQueueExistOnListener(listenerId,queueName)) {
-            getMessageListenerContainerById(listenerId).removeQueueNames(queueName);
-            LOGGER.info("deleting queue from rabbit management");
-            admin.deleteQueue(queueName);
-        } else {
-            LOGGER.info(String.format("given queue name : %s not exist on given listener id : %s", queueName, listenerId));
-        }
-    }
-
-    @Override
-    public Boolean checkQueueExistOnListener(String listenerId, String queueName) {
-        try {
-            LOGGER.info("checking queueName : " + queueName + " exist on listener id : " + listenerId);
-            LOGGER.info("getting queueNames");
-            String[] queueNames = getMessageListenerContainerById(listenerId).getQueueNames();
-            LOGGER.info("checking " + queueName + " exist on active queues");
-            for (String name : queueNames) {
-                LOGGER.info("name : " + name + " with checking name : " + queueName);
-                if (name.equals(queueName)) {
-                    LOGGER.info("queue name exist on listener, returning true");
-                    return Boolean.TRUE;
-                }
-            }
-            return Boolean.FALSE;
-        } catch (Exception e) {
-            LOGGER.error("Error on checking queue exist on listener");
-            LOGGER.error("error message : " + e.getMessage());
-            LOGGER.error("trace : " + Arrays.toString(e.getStackTrace()));
-            return Boolean.FALSE;
-        }
+        var toAdd = userService.getByEmail(email);
+        addUserToChat(chat, toAdd);
+        return toAdd;
     }
 
     @Override
@@ -216,10 +174,10 @@ public class ChatServiceImpl implements ChatService{
         });
     }
 
-    private AbstractMessageListenerContainer getMessageListenerContainerById(String listenerId) {
-        LOGGER.info(String.format("getting message listener container by id : %s", listenerId));
-        return ((AbstractMessageListenerContainer) rabbitListenerEndpointRegistry
-                .getListenerContainer(listenerId));
+    @Override
+    public ChatRoom getChat(Long chatId) {
+        return chatRoomRepository.findById(chatId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Chat with ID %s was not found", chatId)));
     }
 
 }

@@ -27,7 +27,8 @@ public class SecurityConfig{
 
     private static final String[] WHITE_LIST_URL = {
             "/api/auth/**",
-            "/ws-message/**"
+            "/ws-message/**",
+            "/chat/**"
     };
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
@@ -41,7 +42,7 @@ public class SecurityConfig{
                 .authorizeHttpRequests(req ->
                         req
                                 .requestMatchers(WHITE_LIST_URL).permitAll()
-                                .anyRequest().authenticated()
+                                .anyRequest().permitAll()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider)
