@@ -1,6 +1,5 @@
 package com.osu.swi2.rabbitchatapp.chat;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.osu.swi2.rabbitchatapp.user.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;

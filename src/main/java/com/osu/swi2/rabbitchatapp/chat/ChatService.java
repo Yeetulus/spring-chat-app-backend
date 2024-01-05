@@ -9,14 +9,12 @@ public interface ChatService {
     void sendMessage(User user, ChatMessage message);
     List<String> getAllUserQueues(User user);
     List<ChatDTO> getAllUserChatRooms(User user);
-    ChatRoom getChatByMessage(ChatMessage message);
-    ChatRoom createChat(User creator, String chatName);
-    void deleteChat(User requestingUser, Long chatId);
+    ChatDTO createChat(User creator, String chatName);
     ChatRoom addUserToChat(ChatRoom chat, User user);
+    void removeUserFromChat(User requestingUser, Long chatId, Long userId);
     User addNewUser(User owner, Long chatId, String email);
     ChatRoom checkUserMessage(ChatMessage message, User user);
     void checkChatOwnership(User user, ChatRoom chat);
     void createConsumer(String queue);
-
     ChatRoom getChat(Long chatId);
 }

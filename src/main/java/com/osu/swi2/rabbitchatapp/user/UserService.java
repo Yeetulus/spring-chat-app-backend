@@ -17,4 +17,5 @@ public interface UserService {
                       HttpServletResponse response) throws IOException;
 
     User getByEmail(String email);
+    User getById(Long id);
 }

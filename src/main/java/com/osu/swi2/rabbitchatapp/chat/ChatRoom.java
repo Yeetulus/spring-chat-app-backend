@@ -1,6 +1,5 @@
 package com.osu.swi2.rabbitchatapp.chat;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.osu.swi2.rabbitchatapp.user.User;
 import jakarta.persistence.*;
@@ -31,7 +30,7 @@ public class ChatRoom {
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
 
-    @OneToMany(cascade = CascadeType.REMOVE)
+    @OneToMany(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
     @JsonIgnoreProperties("queue")
     private Set<UserQueue> userQueues = new HashSet<>();
 }

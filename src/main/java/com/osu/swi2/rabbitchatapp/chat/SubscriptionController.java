@@ -10,10 +10,11 @@ import org.springframework.stereotype.Controller;
 public class SubscriptionController {
 
     private final ChatService chatService;
-    @SubscribeMapping("/{queue}")
+    @SubscribeMapping("/queue/{queue}")
     public void createConsumer(@DestinationVariable("queue") String queue){
         chatService.createConsumer(queue);
     }
+
 
 
 }

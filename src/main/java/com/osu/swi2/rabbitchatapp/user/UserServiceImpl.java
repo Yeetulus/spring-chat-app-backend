@@ -43,7 +43,6 @@ public class UserServiceImpl implements UserService{
     public AuthResponse registerUser(RegistrationRequest request){
         Optional<User> existing = userRepository.findByEmail(request.getEmail());
         if(existing.isPresent()){
-            // TODO CUSTOM EXCEPTION
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("User with email %s already exists", request.getEmail()));
         }
 
@@ -118,6 +117,14 @@ public class UserServiceImpl implements UserService{
     @Override
     public User getByEmail(String email) {
         return userRepository.findByEmail(email).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, email));
+                new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("Cannot find user with email: %s", email)));
+    }
+
+    @Override
+    public User getById(Long id) {
+        return userRepository.findById(id).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("Cannot find user with id: %s", id)));
     }
 }

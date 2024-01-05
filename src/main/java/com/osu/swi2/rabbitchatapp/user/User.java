@@ -1,7 +1,6 @@
 package com.osu.swi2.rabbitchatapp.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.osu.swi2.rabbitchatapp.chat.ChatRoom;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -10,7 +9,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor

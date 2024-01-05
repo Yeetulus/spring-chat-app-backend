@@ -28,9 +28,9 @@ public class JwtServiceImpl implements JwtService{
 
     @Value("${jwt.secret}")
     private String secretKey;
-    @Value("${jwt.expiration}")
+    @Value("${jwt.expiration.ms}")
     private long jwtExpiration;
-    @Value("${jwt.refresh-expiration}")
+    @Value("${jwt.refresh-expiration.ms}")
     private long refreshExpiration;
 
     public String extractUsername(String token) {
